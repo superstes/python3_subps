@@ -8,23 +8,22 @@ def _format_command(cmd: (str, list)) -> list:
     if isinstance(cmd, list):
         return cmd
 
-    elif cmd.find(' ') != -1:
+    if cmd.find(' ') != -1:
         return cmd.split(' ')
 
-    else:
-        return [cmd]
+    return [cmd]
 
 
 def process(cmd: (str, list), timeout_sec: int = None) -> dict:
     try:
-        p = subprocess.Popen(
+        with subprocess.Popen(
             _format_command(cmd),
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-        )
-        b_stdout, b_stderr = p.communicate(timeout=timeout_sec)
-        stdout, stderr, rc = b_stdout.decode('utf-8').strip(), b_stderr.decode('utf-8').strip(), p.returncode
+        ) as p:
+            b_stdout, b_stderr = p.communicate(timeout=timeout_sec)
+            stdout, stderr, rc = b_stdout.decode('utf-8').strip(), b_stderr.decode('utf-8').strip(), p.returncode
 
     except subprocess.TimeoutExpired as error:
         stdout, stderr, rc = None, str(error), 1
